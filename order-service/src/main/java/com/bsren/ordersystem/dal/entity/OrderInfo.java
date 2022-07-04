@@ -6,7 +6,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-@TableName("order_table")
+@TableName("t_order_info")
 public class OrderInfo extends BaseEntity{
 
     private String tradeNo;

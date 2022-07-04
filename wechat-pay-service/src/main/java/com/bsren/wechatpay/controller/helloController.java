@@ -32,6 +32,7 @@ public class helloController {
     @GetMapping("/hel")
     @ResponseBody
     public void fun1(){
+        
         System.out.println("hello");
         JSONObject jsonObject = new JSONObject();
         service2.addJson(jsonObject);

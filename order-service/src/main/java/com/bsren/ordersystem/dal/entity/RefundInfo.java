@@ -6,8 +6,10 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
-@TableName("refund_table")
+@TableName("t_refund_info")
 public class RefundInfo extends BaseEntity{
+
+    private String tradeNo;
 
     private String refundNo;
 
