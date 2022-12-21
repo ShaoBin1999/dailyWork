@@ -27,7 +27,6 @@ public class MyHashedWheelTimer implements Timer {
     private static final AtomicInteger INSTANCE_COUNTER = new AtomicInteger();
     private static final AtomicBoolean WARNED_TOO_MANY_INSTANCES = new AtomicBoolean();
     private static final int INSTANCE_COUNT_LIMIT = 64;
-
     private static final long MILLISECOND_NANOS = TimeUnit.MILLISECONDS.toNanos(1);
 
     private static final AtomicIntegerFieldUpdater<MyHashedWheelTimer> WORKER_STATE_UPDATER =
@@ -44,6 +43,7 @@ public class MyHashedWheelTimer implements Timer {
     private final HashedWheelBucket[] wheel;
     private final int mask;
     private final CountDownLatch startTimeInitialized = new CountDownLatch(1);
+    //TODO 了解mpscQueue
     private final Queue<HashedWheelTimeout> timeouts = PlatformDependent.newMpscQueue();
     private final Queue<HashedWheelTimeout> cancelledTimeouts = PlatformDependent.newMpscQueue();
     private final AtomicLong pendingTimeouts = new AtomicLong(0);
