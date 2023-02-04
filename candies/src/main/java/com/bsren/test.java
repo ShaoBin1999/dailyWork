@@ -7,11 +7,42 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
 public class test {
-    public static void main(String[] args) {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("1",2);
-        jsonObject.put("2",3);
-        System.out.println(Arrays.toString(jsonObject.toJSONString().getBytes(StandardCharsets.UTF_8)));
-        System.out.println(Arrays.toString(JSONUtil.toJsonStr(jsonObject).getBytes(StandardCharsets.UTF_8)));
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread t = new MyThread();
+        t.start();
+        Thread.sleep(1000);
+        t.interrupt(); // 中断t线程
+        t.join(); // 等待t线程结束
+        System.out.println("end");
+    }
+}
+
+
+class MyThread extends Thread {
+    public void run() {
+        Thread hello = new HelloThread();
+        hello.start(); // 启动hello线程
+        try {
+            hello.join(); // 等待hello线程结束
+        } catch (InterruptedException e) {
+            System.out.println("interrupted!");
+        }
+        hello.interrupt();
+    }
+}
+
+class HelloThread extends Thread {
+    public void run() {
+        int n = 0;
+        while (!isInterrupted()) {
+            n++;
+            System.out.println(n + " hello!");
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
     }
 }
