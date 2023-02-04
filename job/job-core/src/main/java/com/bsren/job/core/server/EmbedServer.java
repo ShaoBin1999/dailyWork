@@ -92,7 +92,7 @@ public class EmbedServer {
         if(thread!=null && thread.isAlive()){
             thread.interrupt();
         }
-        registryRemove();
+//        registryRemove();
         log.info("embedServer destroy success");
     }
 
