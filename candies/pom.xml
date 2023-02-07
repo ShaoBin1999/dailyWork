@@ -51,6 +51,11 @@
             <artifactId>netty-all</artifactId>
             <version>4.1.76.Final</version>
         </dependency>
+        <dependency>
+            <groupId>commons-collections</groupId>
+            <artifactId>commons-collections</artifactId>
+            <version>3.2.1</version>
+        </dependency>
     </dependencies>
 
     <properties>
