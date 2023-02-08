@@ -1,4 +1,4 @@
-package com.bsren.aop.mdc;
+package com.bsren.thread.mdc;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;

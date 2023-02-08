@@ -1,12 +1,9 @@
 package com.bsren.javaStd.blockingQueue;
 
-import com.bsren.javaStd.collections.skipListTest;
-
 import java.io.Serializable;
 import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
