@@ -23,6 +23,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
 
 @Slf4j
 public class ChatClient {
@@ -34,7 +35,6 @@ public class ChatClient {
 
     AtomicBoolean LOGIN = new AtomicBoolean(false);
     AtomicBoolean EXIT = new AtomicBoolean(false);
-
     Scanner scanner = new Scanner(System.in);
     CountDownLatch WAIT_FOR_LOGIN = new CountDownLatch(1);
 

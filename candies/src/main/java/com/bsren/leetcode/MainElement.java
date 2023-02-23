@@ -1,5 +1,7 @@
 package com.bsren.leetcode;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * 摩尔投票法
  */
