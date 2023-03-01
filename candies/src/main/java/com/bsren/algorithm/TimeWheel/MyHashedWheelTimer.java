@@ -9,6 +9,7 @@ import io.netty.util.Timer;
 import io.netty.util.TimerTask;
 import io.netty.util.concurrent.ImmediateExecutor;
 import io.netty.util.internal.PlatformDependent;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Set;
