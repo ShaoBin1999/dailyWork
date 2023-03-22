@@ -1,17 +1,15 @@
 package com.bsren.algorithm.TimeWheel;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Queue;
-
 import io.netty.util.Timeout;
 import io.netty.util.Timer;
 import io.netty.util.TimerTask;
 import io.netty.util.concurrent.ImmediateExecutor;
 import io.netty.util.internal.PlatformDependent;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;

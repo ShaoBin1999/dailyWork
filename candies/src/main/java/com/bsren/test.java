@@ -3,14 +3,24 @@ package com.bsren;
 import org.junit.jupiter.api.Test;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Random;
+import java.text.ChoiceFormat;
+import java.text.NumberFormat;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 
 public class test {
 
     private Object object = new Object();
+
+    @Test
+    public void test0(){
+        NumberFormat numberFormat = NumberFormat.getInstance();
+        numberFormat.setMinimumIntegerDigits(20);
+        numberFormat.setMaximumFractionDigits(0);
+        String format = numberFormat.format(11.11);
+        System.out.println(format);
+    }
 
 
     @Test
