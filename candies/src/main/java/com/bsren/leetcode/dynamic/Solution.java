@@ -2,10 +2,7 @@ package com.bsren.leetcode.dynamic;
 
 import com.bsren.niuke.TreeNode;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Solution {
 
@@ -153,7 +150,61 @@ public class Solution {
     }
 
     public static void main(String[] args) {
-        System.out.println(new Solution().jump(new int[]{2,4,1,0,2}));
+        int[] n1 = new int[]{1,2,3,4,5};
+        int[] n3 = new int[10];
+        System.arraycopy(n1,0,n3,0,5);
+        int[] n2 = new int[]{1,1,1,2,3};
+        new Solution().merge(n3,5,n2,5);
+        System.out.println(Arrays.toString(n3));
+    }
+
+    public static String fun(int n,int[] num){
+        int[] d = new int[n];
+        for (int i = 0; i < num.length; i++) {
+            int v = num[i];
+            for (int j=i-1;j>=0;j--){
+                int p = Math.max(0,v-(n-(i-j)));
+                if(p==0){
+                    break;
+                }
+                d[j]+=p;
+            }
+            for (int j=i+1;j<n;j++){
+                int p = Math.max(0,v-(n-(j-i)));
+                if(p==0){
+                    break;
+                }
+                d[j]+=p;
+            }
+        }
+        StringBuilder s = new StringBuilder();
+        for (int i=0;i<n;i++){
+            if(i==n-1){
+                s.append(d[i]);
+            }else {
+                s.append(d[i]);
+                s.append(" ");
+            }
+        }
+        return s.toString();
+    }
+
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int idx1 = m-1,idx2 = n-1;
+        int cur = m+n-1;
+        while (cur>=0){
+            if(idx1<0){
+                System.arraycopy(nums2,0,nums1,0,idx2+1);
+                return;
+            }else if(idx2<0){
+                return;
+            }
+            if(nums1[idx1]<=nums2[idx2]){
+                nums1[cur--] = nums2[idx2--];
+            }else {
+                nums1[cur--] = nums1[idx1--];
+            }
+        }
     }
 
 }
