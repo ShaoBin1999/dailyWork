@@ -6,35 +6,35 @@ import java.util.*;
 
 public class Solution743 {
 
-    private static final int INF = Integer.MAX_VALUE/2;
+   public static final int INF = Integer.MAX_VALUE/2;
 
     public int networkDelayTime1(int[][] times, int n, int k) {
-        int[][] g = new int[n][n];
         boolean[] visited = new boolean[n];
+        int[][] edges = new int[n][n];
         int[] dist = new int[n];
+        Arrays.fill(dist,INF);
         for (int i=0;i<n;i++){
-            dist[i] = INF;
-            Arrays.fill(g[i],INF);
+            Arrays.fill(edges[i],INF);
         }
-        for (int[] time:times){
-            g[time[0]-1][time[1]-1] = time[2];
+        for (int[] time : times) {
+            edges[time[0]-1][time[1]-1] = time[2];
         }
         dist[k-1] = 0;
         for (int i=0;i<n;i++){
             int t = -1;
             for (int j=0;j<n;j++){
-                if(!visited[j] && (t ==-1 || dist[t]>dist[j])){
+                if(!visited[j] && (t==-1 || dist[j]<dist[t])){
                     t = j;
                 }
             }
             visited[t] = true;
             for (int j=0;j<n;j++){
-                dist[j] = Math.min(dist[j],dist[t] + g[t][j]);
+                dist[j] = Math.min(dist[j],dist[t]+edges[t][j]);
             }
         }
-        int ans = 0;
-        for (int i : dist) {
-            ans = Math.max(ans,i);
+        int ans = -1;
+        for (int i=0;i<n;i++){
+            ans = Math.max(ans,dist[i]);
         }
         return ans==INF?-1:ans;
     }
@@ -52,9 +52,15 @@ public class Solution743 {
         dist[k - 1] = 0;
         PriorityQueue<int[]> q = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
         q.offer(new int[]{0, k - 1});
+        boolean[] visited = new boolean[n];
         while (!q.isEmpty()) {
             int[] p = q.poll();
             int u = p[1];
+            if (visited[u]) {
+                continue;
+            }
+
+            visited[u] = true;
             for (int[] ne : g[u]) {
                 int v = ne[0], w = ne[1];
                 if (dist[v] > dist[u] + w) {
