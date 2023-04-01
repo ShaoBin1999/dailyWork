@@ -192,7 +192,6 @@ public class Pinduoduo {
 
     //珠宝
 
-
     //一棵树的最小施工数量，从某个点开始修理
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);

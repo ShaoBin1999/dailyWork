@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicLong;
  *   3. 处理该指针指向bucket的任务，过期则执行，否则圈数-1
  *   4. 指针移动到下一个位置
  *   5. 休眠一定的时间
+ *
+ * todo 使用多个轮盘，分钟-小时-天
  */
 @Slf4j
 public class HashedWheelTimer implements Timer{
