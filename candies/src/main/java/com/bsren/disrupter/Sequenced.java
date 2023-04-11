@@ -35,8 +35,8 @@ public interface Sequenced {
     long next();
 
     /**
-     * Claim the next n events in sequence for publishing.  This is for batch event producing.  Using batch producing
-     * requires a little care and some math.
+     * Claim the next n events in sequence for publishing.
+     * This is for batch event producing.  Using batch producing requires a little care and some math.
      * <pre>
      * int n = 10;
      * long hi = sequencer.next(n);

@@ -1,10 +1,6 @@
 package com.bsren.disrupter;
 
 
-import com.lmax.disruptor.DataProvider;
-import com.lmax.disruptor.EventPoller;
-import com.lmax.disruptor.Sequence;
-import com.lmax.disruptor.SequenceBarrier;
 
 public interface Sequencer extends Cursored, Sequenced {
 
