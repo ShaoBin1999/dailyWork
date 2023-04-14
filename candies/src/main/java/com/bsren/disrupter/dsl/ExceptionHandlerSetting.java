@@ -15,10 +15,11 @@
  */
 package com.bsren.disrupter.dsl;
 
-import com.lmax.disruptor.BatchEventProcessor;
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.EventProcessor;
-import com.lmax.disruptor.ExceptionHandler;
+
+import com.bsren.disrupter.EventHandler;
+import com.bsren.disrupter.EventProcessor;
+import com.bsren.disrupter.ExceptionHandler;
+import com.bsren.disrupter.eventProcessor.BatchEventProcessor;
 
 /**
  * A support class used as part of setting an exception handler for a specific event handler.
@@ -27,8 +28,7 @@ import com.lmax.disruptor.ExceptionHandler;
  *
  * @param <T> the type of event being handled.
  */
-public class ExceptionHandlerSetting<T>
-{
+public class ExceptionHandlerSetting<T> {
     private final EventHandler<T> eventHandler;
     private final ConsumerRepository<T> consumerRepository;
 

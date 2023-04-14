@@ -15,6 +15,8 @@
  */
 package com.bsren.disrupter;
 
+import com.bsren.disrupter.eventProcessor.BatchEventProcessor;
+
 /**
  * Used by the {@link BatchEventProcessor} to set a callback allowing the {@link EventHandler} to notify
  * when it has finished consuming an event if this happens after the {@link EventHandler#onEvent(Object, long, boolean)} call.
@@ -25,13 +27,6 @@ package com.bsren.disrupter;
  *
  * @param <T> event implementation storing the data for sharing during exchange or parallel coordination of an event.
  */
-public interface SequenceReportingEventHandler<T>
-    extends EventHandler<T>
-{
-    /**
-     * Call by the {@link BatchEventProcessor} to setup the callback.
-     *
-     * @param sequenceCallback callback on which to notify the {@link BatchEventProcessor} that the sequence has progressed.
-     */
+public interface SequenceReportingEventHandler<T> extends EventHandler<T> {
     void setSequenceCallback(Sequence sequenceCallback);
 }

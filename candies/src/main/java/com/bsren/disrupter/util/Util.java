@@ -15,8 +15,8 @@
  */
 package com.bsren.disrupter.util;
 
+import com.bsren.disrupter.EventProcessor;
 import com.bsren.disrupter.Sequence;
-import com.lmax.disruptor.EventProcessor;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
@@ -74,27 +74,20 @@ public final class Util
      * @param processors for which to get the sequences
      * @return the array of {@link Sequence}s
      */
-    public static Sequence[] getSequencesFor(final EventProcessor... processors)
-    {
+    public static Sequence[] getSequencesFor(final EventProcessor... processors) {
         Sequence[] sequences = new Sequence[processors.length];
-        for (int i = 0; i < sequences.length; i++)
-        {
-//            sequences[i] = processors[i].getSequence();
+        for (int i = 0; i < sequences.length; i++) {
+            sequences[i] = processors[i].getSequence();
         }
-
         return sequences;
     }
 
     private static final Unsafe THE_UNSAFE;
 
-    static
-    {
-        try
-        {
-            final PrivilegedExceptionAction<Unsafe> action = new PrivilegedExceptionAction<Unsafe>()
-            {
-                public Unsafe run() throws Exception
-                {
+    static {
+        try {
+            final PrivilegedExceptionAction<Unsafe> action = new PrivilegedExceptionAction<Unsafe>() {
+                public Unsafe run() throws Exception {
                     Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
                     theUnsafe.setAccessible(true);
                     return (Unsafe) theUnsafe.get(null);
@@ -103,8 +96,7 @@ public final class Util
 
             THE_UNSAFE = AccessController.doPrivileged(action);
         }
-        catch (Exception e)
-        {
+        catch (Exception e) {
             throw new RuntimeException("Unable to load unsafe", e);
         }
     }

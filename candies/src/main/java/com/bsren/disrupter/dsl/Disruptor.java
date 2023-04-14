@@ -15,8 +15,15 @@
  */
 package com.bsren.disrupter.dsl;
 
-import com.lmax.disruptor.*;
-import com.lmax.disruptor.util.Util;
+
+
+import com.bsren.disrupter.*;
+import com.bsren.disrupter.eventProcessor.BatchEventProcessor;
+import com.bsren.disrupter.eventTranslator.EventTranslatorOneArg;
+import com.bsren.disrupter.eventTranslator.EventTranslatorThreeArg;
+import com.bsren.disrupter.eventTranslator.EventTranslatorTwoArg;
+import com.bsren.disrupter.util.Util;
+import com.lmax.disruptor.TimeoutException;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
@@ -41,8 +48,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * @param <T> the type of event used.
  */
-public class Disruptor<T>
-{
+public class Disruptor<T> {
     private final RingBuffer<T> ringBuffer;
     private final Executor executor;
     private final ConsumerRepository<T> consumerRepository = new ConsumerRepository<>();
@@ -62,8 +68,7 @@ public class Disruptor<T>
      * @param ringBuffer
      * @param executor2        */
     @Deprecated
-    public Disruptor(final EventFactory<T> eventFactory, final int ringBufferSize, final Executor executor, Executor executor1, RingBuffer<T> ringBuffer, Executor executor2)
-    {
+    public Disruptor(final EventFactory<T> eventFactory, final int ringBufferSize, final Executor executor, Executor executor1, RingBuffer<T> ringBuffer, Executor executor2) {
         this(RingBuffer.createMultiProducer(eventFactory, ringBufferSize), executor);
     }
 
@@ -117,23 +122,22 @@ public class Disruptor<T>
      * @param ringBuffer
      * @param executor
      */
-//    public Disruptor(
-//            final EventFactory<T> eventFactory,
-//            final int ringBufferSize,
-//            final ThreadFactory threadFactory,
-//            final ProducerType producerType,
-//            final WaitStrategy waitStrategy, RingBuffer<T> ringBuffer, Executor executor)
-//    {
-//        this(
-//            RingBuffer.create(producerType, eventFactory, ringBufferSize, waitStrategy),
-//            new BasicExecutor(threadFactory));
-//    }
+    public Disruptor(
+            final EventFactory<T> eventFactory,
+            final int ringBufferSize,
+            final ThreadFactory threadFactory,
+            final ProducerType producerType,
+            final WaitStrategy waitStrategy, RingBuffer<T> ringBuffer, Executor executor)
+    {
+        this(
+            RingBuffer.create(producerType, eventFactory, ringBufferSize, waitStrategy),
+            new BasicExecutor(threadFactory));
+    }
 
     /**
      * Private constructor helper
      */
-    private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor)
-    {
+    private Disruptor(final RingBuffer<T> ringBuffer, final Executor executor) {
         this.ringBuffer = ringBuffer;
         this.executor = executor;
     }
@@ -151,10 +155,15 @@ public class Disruptor<T>
      * @param handlers the event handlers that will process events.
      * @return a {@link EventHandlerGroup} that can be used to chain dependencies.
      */
+    /**
+     * disruptor.handleEventsWith(eventHandler1, eventHandler3);
+     * disruptor.after(eventHandler1).handleEventsWith(eventHandler2);
+     * disruptor.after(eventHandler3).handleEventsWith(eventHandler4);
+     * disruptor.after(eventHandler2, eventHandler4).handleEventsWith(eventHandler5);
+     */
     @SuppressWarnings("varargs")
     @SafeVarargs
-    public final EventHandlerGroup<T> handleEventsWith(final EventHandler<? super T>... handlers)
-    {
+    public final EventHandlerGroup<T> handleEventsWith(final EventHandler<? super T>... handlers) {
         return createEventProcessors(new Sequence[0], handlers);
     }
 
@@ -177,8 +186,7 @@ public class Disruptor<T>
      * @return a {@link EventHandlerGroup} that can be used to chain dependencies.
      */
     @SafeVarargs
-    public final EventHandlerGroup<T> handleEventsWith(final EventProcessorFactory<T>... eventProcessorFactories)
-    {
+    public final EventHandlerGroup<T> handleEventsWith(final EventProcessorFactory<T>... eventProcessorFactories) {
         final Sequence[] barrierSequences = new Sequence[0];
         return createEventProcessors(barrierSequences, eventProcessorFactories);
     }
@@ -194,16 +202,13 @@ public class Disruptor<T>
      * @param processors the event processors that will process events.
      * @return a {@link EventHandlerGroup} that can be used to chain dependencies.
      */
-    public EventHandlerGroup<T> handleEventsWith(final EventProcessor... processors)
-    {
-        for (final EventProcessor processor : processors)
-        {
+    public EventHandlerGroup<T> handleEventsWith(final EventProcessor... processors) {
+        for (final EventProcessor processor : processors) {
             consumerRepository.add(processor);
         }
 
         final Sequence[] sequences = new Sequence[processors.length];
-        for (int i = 0; i < processors.length; i++)
-        {
+        for (int i = 0; i < processors.length; i++) {
             sequences[i] = processors[i].getSequence();
         }
 
@@ -283,11 +288,9 @@ public class Disruptor<T>
      */
     @SafeVarargs
     @SuppressWarnings("varargs")
-    public final EventHandlerGroup<T> after(final EventHandler<T>... handlers)
-    {
+    public final EventHandlerGroup<T> after(final EventHandler<T>... handlers) {
         final Sequence[] sequences = new Sequence[handlers.length];
-        for (int i = 0, handlersLength = handlers.length; i < handlersLength; i++)
-        {
+        for (int i = 0, handlersLength = handlers.length; i < handlersLength; i++) {
             sequences[i] = consumerRepository.getSequenceFor(handlers[i]);
         }
 
@@ -302,10 +305,8 @@ public class Disruptor<T>
      * @return an {@link EventHandlerGroup} that can be used to setup a {@link SequenceBarrier} over the specified event processors.
      * @see #after(EventHandler[])
      */
-    public EventHandlerGroup<T> after(final EventProcessor... processors)
-    {
-        for (final EventProcessor processor : processors)
-        {
+    public EventHandlerGroup<T> after(final EventProcessor... processors) {
+        for (final EventProcessor processor : processors) {
             consumerRepository.add(processor);
         }
 
@@ -536,43 +537,58 @@ public class Disruptor<T>
         return false;
     }
 
+    /**
+     有多少个eventHandlers就创建多少个BatchEventProcessor实例（消费者)，
+     BatchEventProcessor消费者其实就是一个实现Runnable接口的线程实例；
+     每个BatchEventProcessor实例（消费者)拥有前一个消费者的sequence作为其sequenceBarrier即dependentSequence；
+     当前消费者的sequence通过EventHandlerGroup这个载体来传递给下一个消费者作为其sequenceBarrier即dependentSequence。
+     */
     EventHandlerGroup<T> createEventProcessors(
         final Sequence[] barrierSequences,
-        final EventHandler<? super T>[] eventHandlers)
-    {
+        final EventHandler<? super T>[] eventHandlers
+    ) {
         checkNotStarted();
-
+        // 根据eventHandlers长度来创建多少个消费者Sequence实例，
+        // 注意这个processorSequences是传递到EventHandlerGroup用于构建执行顺序链用的，
+        // 比如有执行顺序链：A->B，那么A的sequence即processorSequences会作为B节点的barrierSequences即dependencySequence
         final Sequence[] processorSequences = new Sequence[eventHandlers.length];
+        //  新建了一个ProcessingSequenceBarrier实例返回
+        //  ProcessingSequenceBarrier实例作用：序号屏障，通过追踪生产者的cursorSequence和每个消费者（ EventProcessor）
+        //  的sequence的方式来协调生产者和消费者之间的数据交换进度
         final SequenceBarrier barrier = ringBuffer.newBarrier(barrierSequences);
 
-        for (int i = 0, eventHandlersLength = eventHandlers.length; i < eventHandlersLength; i++)
-        {
+        for (int i = 0, eventHandlersLength = eventHandlers.length; i < eventHandlersLength; i++) {
+
             final EventHandler<? super T> eventHandler = eventHandlers[i];
 
+            //  有多少个eventHandlers就创建多少个BatchEventProcessor实例（消费者），
+            //  但需要注意的是同一批次的每个BatchEventProcessor实例共用同一个SequenceBarrier实例
             final BatchEventProcessor<T> batchEventProcessor =
                 new BatchEventProcessor<>(ringBuffer, barrier, eventHandler);
 
-            if (exceptionHandler != null)
-            {
+            if (exceptionHandler != null) {
                 batchEventProcessor.setExceptionHandler(exceptionHandler);
             }
 
+            // 将batchEventProcessor, eventHandler, barrier封装成EventProcessorInfo实例并加入到ConsumerRepository相关集合
+            // ConsumerRepository作用：提供存储机制关联EventHandlers和EventProcessors
             consumerRepository.add(batchEventProcessor, eventHandler, barrier);
+
+            //  获取到每个消费的消费sequence并赋值给processorSequences数组
+            //  即processorSequences[i]引用了BatchEventProcessor的sequence实例，
+            //  processorSequences[i]又是构建生产者gatingSequence和消费者执行器链dependentSequence的来源
             processorSequences[i] = batchEventProcessor.getSequence();
         }
-
+        // 总是拿执行器链最后一个消费者的sequence作为生产者的gatingSequence
         updateGatingSequencesForNextInChain(barrierSequences, processorSequences);
-
+        // 最终返回封装了Disruptor、ConsumerRepository和消费者sequence数组processorSequences的EventHandlerGroup对象实例返回
         return new EventHandlerGroup<>(this, consumerRepository, processorSequences);
     }
 
-    private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequences, final Sequence[] processorSequences)
-    {
-        if (processorSequences.length > 0)
-        {
+    private void updateGatingSequencesForNextInChain(final Sequence[] barrierSequences, final Sequence[] processorSequences) {
+        if (processorSequences.length > 0) {
             ringBuffer.addGatingSequences(processorSequences);
-            for (final Sequence barrierSequence : barrierSequences)
-            {
+            for (final Sequence barrierSequence : barrierSequences) {
                 ringBuffer.removeGatingSequence(barrierSequence);
             }
             consumerRepository.unMarkEventProcessorsAsEndOfChain(barrierSequences);
@@ -580,11 +596,11 @@ public class Disruptor<T>
     }
 
     EventHandlerGroup<T> createEventProcessors(
-        final Sequence[] barrierSequences, final EventProcessorFactory<T>[] processorFactories)
-    {
+        final Sequence[] barrierSequences,
+        final EventProcessorFactory<T>[] processorFactories
+    ) {
         final EventProcessor[] eventProcessors = new EventProcessor[processorFactories.length];
-        for (int i = 0; i < processorFactories.length; i++)
-        {
+        for (int i = 0; i < processorFactories.length; i++) {
             eventProcessors[i] = processorFactories[i].createEventProcessor(ringBuffer, barrierSequences);
         }
 
@@ -592,11 +608,11 @@ public class Disruptor<T>
     }
 
     EventHandlerGroup<T> createWorkerPool(
-        final Sequence[] barrierSequences, final WorkHandler<? super T>[] workHandlers)
-    {
+        final Sequence[] barrierSequences,
+        final WorkHandler<? super T>[] workHandlers
+    ) {
         final SequenceBarrier sequenceBarrier = ringBuffer.newBarrier(barrierSequences);
         final WorkerPool<T> workerPool = new WorkerPool<>(ringBuffer, sequenceBarrier, exceptionHandler, workHandlers);
-
 
         consumerRepository.add(workerPool, sequenceBarrier);
 
@@ -607,25 +623,20 @@ public class Disruptor<T>
         return new EventHandlerGroup<>(this, consumerRepository, workerSequences);
     }
 
-    private void checkNotStarted()
-    {
-        if (started.get())
-        {
+    private void checkNotStarted() {
+        if (started.get()) {
             throw new IllegalStateException("All event handlers must be added before calling starts.");
         }
     }
 
-    private void checkOnlyStartedOnce()
-    {
-        if (!started.compareAndSet(false, true))
-        {
+    private void checkOnlyStartedOnce() {
+        if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("Disruptor.start() must only be called once.");
         }
     }
 
     @Override
-    public String toString()
-    {
+    public String toString() {
         return "Disruptor{" +
             "ringBuffer=" + ringBuffer +
             ", started=" + started +

@@ -8,6 +8,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadFactory;
 
+/**
+ * 有一个ConcurrentLinkedQueue的threads组，每次提交任务的时候都会新创建线程
+ */
 public class BasicExecutor implements Executor {
     private final ThreadFactory factory;
     private final Queue<Thread> threads = new ConcurrentLinkedQueue<>();

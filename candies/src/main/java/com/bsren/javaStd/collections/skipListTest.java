@@ -1,7 +1,7 @@
 package com.bsren.javaStd.collections;
 
 //不支持索引层数变化
-public class skipListTest {
+class skipListTest {
 
     public final Integer levels;
 

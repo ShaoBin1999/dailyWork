@@ -1,13 +1,14 @@
 package com.bsren.disrupter.dsl;
 
-import com.lmax.disruptor.Sequence;
-import com.lmax.disruptor.SequenceBarrier;
-import com.lmax.disruptor.WorkerPool;
+
+import com.bsren.disrupter.Sequence;
+import com.bsren.disrupter.SequenceBarrier;
+import com.bsren.disrupter.WorkerPool;
 
 import java.util.concurrent.Executor;
 
-class WorkerPoolInfo<T> implements ConsumerInfo
-{
+class WorkerPoolInfo<T> implements ConsumerInfo {
+
     private final WorkerPool<T> workerPool;
     private final SequenceBarrier sequenceBarrier;
     private boolean endOfChain = true;
@@ -19,8 +20,7 @@ class WorkerPoolInfo<T> implements ConsumerInfo
     }
 
     @Override
-    public Sequence[] getSequences()
-    {
+    public Sequence[] getSequences() {
         return workerPool.getWorkerSequences();
     }
 
@@ -37,8 +37,7 @@ class WorkerPoolInfo<T> implements ConsumerInfo
     }
 
     @Override
-    public void start(Executor executor)
-    {
+    public void start(Executor executor) {
         workerPool.start(executor);
     }
 
@@ -49,8 +48,7 @@ class WorkerPoolInfo<T> implements ConsumerInfo
     }
 
     @Override
-    public void markAsUsedInBarrier()
-    {
+    public void markAsUsedInBarrier() {
         endOfChain = false;
     }
 

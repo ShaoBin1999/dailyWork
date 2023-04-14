@@ -29,7 +29,15 @@ abstract class SingleProducerSequencerFields extends SingleProducerSequencerPad 
     long cachedValue = Sequence.INITIAL_VALUE;
 }
 
-
+/**
+ * RingBuffer 的头由一个名字为 Cursor 的 Sequence 对象维护，
+ * 用来协调生产者向 RingBuffer 中填充数据。
+ * 表示队列尾的 Sequence 并没有在 RingBuffer 中，
+ * 而是由消费者维护。
+ * 这样的话，队列尾的维护就是无锁的。
+ * 但是，在生产者方确定 RingBuffer 是否已满就需要跟踪更多信息。
+ * 为此，GatingSequence 用来跟踪相关 Sequence
+ */
 public final class SingleProducerSequencer extends SingleProducerSequencerFields {
     protected long p1, p2, p3, p4, p5, p6, p7;
 
@@ -74,6 +82,20 @@ public final class SingleProducerSequencer extends SingleProducerSequencerFields
         return next(1);
     }
 
+    /**
+     生产者把第一圈RingBuffer的坑填完后，
+     此时生产者进入RingBuffer第2圈，
+     如果消费者消费速度过慢，此时生产者很可能会追上消费者，
+     如果追上消费者那么就让生产者自旋等待；
+
+     如果消费者消费速度过慢，对于构建了一个过滤器链的消费者中，
+     那么指的是哪个消费者呢？
+     指的就是执行器链最后执行的那个消费者，
+     gatingSequences就是执行器链最后执行的那个消费者的sequence；
+     这个gatingSequences其实就是防止生产者追赶消费者的sequenceBarrier
+
+     生产者总是先把第一圈RingBuffer填满后，才会考虑追赶消费者的问题，因此才有wrapPoint > cachedGatingSequence的评判条件
+     */
     @Override
     public long next(int n) {
         if (n < 1) {
@@ -150,36 +172,24 @@ public final class SingleProducerSequencer extends SingleProducerSequencerFields
         return getBufferSize() - (nextValue - consumed);
     }
 
-    /**
-     * @see com.lmax.disruptor.Sequencer#claim(long)
-     */
     @Override
     public void claim(long sequence)
     {
         this.nextValue = sequence;
     }
 
-    /**
-     * @see com.lmax.disruptor.Sequencer#publish(long)
-     */
     @Override
     public void publish(long sequence) {
         cursor.set(sequence);
         waitStrategy.signalAllWhenBlocking();
     }
 
-    /**
-     * @see com.lmax.disruptor.Sequencer#publish(long, long)
-     */
     @Override
     public void publish(long lo, long hi)
     {
         publish(hi);
     }
 
-    /**
-     * @see Sequencer#isAvailable(long)
-     */
     @Override
     public boolean isAvailable(long sequence)
     {

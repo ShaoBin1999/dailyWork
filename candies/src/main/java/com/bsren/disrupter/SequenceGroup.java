@@ -4,8 +4,7 @@ import com.bsren.disrupter.util.Util;
 
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 
-public final class SequenceGroup extends com.lmax.disruptor.Sequence
-{
+public final class SequenceGroup extends Sequence {
     private static final AtomicReferenceFieldUpdater<SequenceGroup, Sequence[]> SEQUENCE_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(SequenceGroup.class, Sequence[].class, "sequences");
     private volatile Sequence[] sequences = new Sequence[0];

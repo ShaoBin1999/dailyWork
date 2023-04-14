@@ -72,8 +72,7 @@ public abstract class AbstractSequencer implements Sequencer {
 
 
     @Override
-    public final void addGatingSequences(Sequence... gatingSequences)
-    {
+    public final void addGatingSequences(Sequence... gatingSequences) {
         SequenceGroups.addSequences(this, SEQUENCE_UPDATER, this, gatingSequences);
     }
 

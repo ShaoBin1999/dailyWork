@@ -24,17 +24,22 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * WorkerPool contains a pool of {@link WorkProcessor}s that will consume sequences so jobs can be farmed out across a pool of workers.
+ * WorkerPool contains a pool of {@link WorkProcessor}s that will consume sequences
+ * so jobs can be farmed out across a pool of workers.
  * Each of the {@link WorkProcessor}s manage and calls a {@link com.lmax.disruptor.WorkHandler} to process the events.
- *
  * @param <T> event to be processed by a pool of workers
  */
 public final class WorkerPool<T> {
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final Sequence workSequence = new Sequence(Sequencer.INITIAL_CURSOR_VALUE);
+
+    // 与workProcessor的sequence不同，它用来协调workProcessors的工作用的，
+    // 它总是大于workProcessor的sequence,
+    // 当workProcessor竞争workPool的sequence成功时，
+    // 其他的workProcessors可以消费下一个sequence序号了
+    private final Sequence workSequence = new Sequence(Sequencer.INITIAL_CURSOR_VALUE);  // 所有消费者公有的序列器
     private final RingBuffer<T> ringBuffer;
     // WorkProcessors are created to wrap each of the provided WorkHandlers
-    private final WorkProcessor<?>[] workProcessors;
+    private final WorkProcessor<?>[] workProcessors;  //事件处理器，每个workProcessor都需要一个单独的执行线程
 
     /**
      * Create a worker pool to enable an array of {@link com.lmax.disruptor.WorkHandler}s to consume published sequences.
@@ -52,8 +57,7 @@ public final class WorkerPool<T> {
         final RingBuffer<T> ringBuffer,
         final SequenceBarrier sequenceBarrier,
         final ExceptionHandler<? super T> exceptionHandler,
-        final WorkHandler<? super T>... workHandlers)
-    {
+        final WorkHandler<? super T>... workHandlers) {
         this.ringBuffer = ringBuffer;
         final int numWorkers = workHandlers.length;
         workProcessors = new WorkProcessor[numWorkers];
@@ -77,30 +81,33 @@ public final class WorkerPool<T> {
      * @param exceptionHandler to callback when an error occurs which is not handled by the {@link com.lmax.disruptor.WorkHandler}s.
      * @param workHandlers     to distribute the work load across.
      */
-//    @SafeVarargs
-//    public WorkerPool(
-//        final EventFactory<T> eventFactory,
-//        final ExceptionHandler<? super T> exceptionHandler,
-//        final WorkHandler<? super T>... workHandlers)
-//    {
-//        ringBuffer = RingBuffer.createMultiProducer(eventFactory, 1024, new BlockingWaitStrategy());
-//        final SequenceBarrier barrier = ringBuffer.newBarrier();
-//        final int numWorkers = workHandlers.length;
-//        workProcessors = new WorkProcessor[numWorkers];
-//
-//        for (int i = 0; i < numWorkers; i++) {
-//            workProcessors[i] = new WorkProcessor<>(
-//                ringBuffer,
-//                barrier,
-//                workHandlers[i],
-//                exceptionHandler,
-//                workSequence);
-//        }
-//
-//        ringBuffer.addGatingSequences(getWorkerSequences());
-//    }
+    @SafeVarargs
+    public WorkerPool(
+        final EventFactory<T> eventFactory,
+        final ExceptionHandler<? super T> exceptionHandler,
+        final WorkHandler<? super T>... workHandlers
+    ) {
+        ringBuffer = RingBuffer.createMultiProducer(eventFactory, 1024, new BlockingWaitStrategy());
+        final SequenceBarrier barrier = ringBuffer.newBarrier();
+        final int numWorkers = workHandlers.length;
+        workProcessors = new WorkProcessor[numWorkers];
+
+        for (int i = 0; i < numWorkers; i++) {
+            workProcessors[i] = new WorkProcessor<>(
+                ringBuffer,
+                barrier,
+                workHandlers[i],
+                exceptionHandler,
+                workSequence);
+        }
+
+        ringBuffer.addGatingSequences(getWorkerSequences());
+    }
 
 
+    /**
+     * 获取每个worker的sequence，末尾添加workSequence
+     */
     public Sequence[] getWorkerSequences() {
         final Sequence[] sequences = new Sequence[workProcessors.length + 1];
         for (int i = 0, size = workProcessors.length; i < size; i++) {

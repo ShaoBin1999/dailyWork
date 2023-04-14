@@ -15,10 +15,10 @@
  */
 package com.bsren.disrupter.dsl;
 
-import com.lmax.disruptor.EventHandler;
-import com.lmax.disruptor.EventProcessor;
-import com.lmax.disruptor.Sequence;
-import com.lmax.disruptor.SequenceBarrier;
+import com.bsren.disrupter.EventHandler;
+import com.bsren.disrupter.EventProcessor;
+import com.bsren.disrupter.Sequence;
+import com.bsren.disrupter.SequenceBarrier;
 
 import java.util.concurrent.Executor;
 
@@ -48,8 +48,7 @@ class EventProcessorInfo<T> implements ConsumerInfo {
     }
 
     @Override
-    public Sequence[] getSequences()
-    {
+    public Sequence[] getSequences() {
         return new Sequence[]{eventprocessor.getSequence()};
     }
 

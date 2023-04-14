@@ -1,10 +1,10 @@
 package com.bsren.disrupter.dsl;
 
-import com.lmax.disruptor.ExceptionHandler;
-import com.lmax.disruptor.FatalExceptionHandler;
 
-public class ExceptionHandlerWrapper<T> implements ExceptionHandler<T>
-{
+import com.bsren.disrupter.ExceptionHandler;
+import com.bsren.disrupter.exceptionHandler.FatalExceptionHandler;
+
+public class ExceptionHandlerWrapper<T> implements ExceptionHandler<T> {
     private ExceptionHandler<? super T> delegate = new FatalExceptionHandler();
 
     public void switchTo(final ExceptionHandler<? super T> exceptionHandler)

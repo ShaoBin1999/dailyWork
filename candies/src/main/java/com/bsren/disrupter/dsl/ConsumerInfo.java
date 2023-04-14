@@ -1,11 +1,16 @@
 package com.bsren.disrupter.dsl;
 
-import com.lmax.disruptor.Sequence;
-import com.lmax.disruptor.SequenceBarrier;
+
+import com.bsren.disrupter.Sequence;
+import com.bsren.disrupter.SequenceBarrier;
 
 import java.util.concurrent.Executor;
 
+/**
+ * 获取信息的接口，相比于直接给出信息的类更具有拓展性
+ */
 interface ConsumerInfo {
+
     Sequence[] getSequences();
 
     SequenceBarrier getBarrier();

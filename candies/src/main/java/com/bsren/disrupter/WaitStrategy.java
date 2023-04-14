@@ -1,11 +1,11 @@
 package com.bsren.disrupter;
 
 
+import com.bsren.disrupter.eventProcessor.BatchEventProcessor;
 import com.lmax.disruptor.AlertException;
 import com.lmax.disruptor.TimeoutException;
 
-public interface WaitStrategy
-{
+public interface WaitStrategy {
     /**
      * Wait for the given sequence to be available.  It is possible for this method to return a value
      * less than the sequence number supplied depending on the implementation of the WaitStrategy.  A common

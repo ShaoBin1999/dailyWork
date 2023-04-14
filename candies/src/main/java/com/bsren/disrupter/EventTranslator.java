@@ -16,8 +16,6 @@
 package com.bsren.disrupter;
 
 
-import com.bsren.disrupter.RingBuffer;
-
 /**
  * <p>Implementations translate (write) data representations into events claimed from the {@link RingBuffer}.</p>
  *
@@ -27,8 +25,7 @@ import com.bsren.disrupter.RingBuffer;
  *
  * @param <T> event implementation storing the data for sharing during exchange or parallel coordination of an event.
  */
-public interface EventTranslator<T>
-{
+public interface EventTranslator<T> {
     /**
      * Translate a data representation into fields set in given event
      *
